@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AutoPulse – Car News & Reviews</title>
+  <meta name="description" content="Personal blog for daily car news, launches, reviews, and opinions." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%235b21b6' d='M12 40h40l6-8-6-8H12l-6 8z'/%3E%3Ccircle cx='20' cy='44' r='6' fill='%2337373d'/%3E%3Ccircle cx='44' cy='44' r='6' fill='%2337373d'/%3E%3C/svg%3E"/>
+
+  <!-- TailwindCSS CDN (no build tools needed) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { display: ['Inter', 'ui-sans-serif', 'system-ui'] },
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+  <style>
+    /* smooth fade for route changes */
+    .fade-enter { opacity: 0; transform: translateY(8px); }
+    .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity .25s, transform .25s; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+  <!-- Header / Navbar -->
+  <header class="sticky top-0 z-40 backdrop-blur bg-white/80 dark:bg-gray-900/70 border-b border-gray-200/60 dark:border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <a href="#" class="flex items-center gap-2 font-bold text-xl">
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">AP</span>
+          <span>AutoPulse</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-6 text-sm">
+          <a href="#" class="hover:text-indigo-600">Home</a>
+          <a href="#category/News" class="hover:text-indigo-600">News</a>
+          <a href="#category/Reviews" class="hover:text-indigo-600">Reviews</a>
+          <a href="#category/EVs" class="hover:text-indigo-600">EVs</a>
+        </nav>
+        <div class="flex items-center gap-2">
+          <button id="themeToggle" class="rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Toggle dark mode">🌗</button>
+          <a href="#subscribe" class="hidden sm:inline-block bg-indigo-600 text-white px-3 py-1.5 rounded-xl text-sm font-semibold hover:bg-indigo-700">Subscribe</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+      <div class="grid lg:grid-cols-2 gap-10 items-center">
+        <div>
+          <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight">
+            Car news, launches & no‑nonsense reviews.
+          </h1>
+          <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
+            Welcome to <span class="font-semibold">AutoPulse</span> — my personal blog where I break down the latest auto headlines, share hands‑on reviews, and help you decide what actually matters.
+          </p>
+          <form id="subscribe" class="mt-6 flex gap-3">
+            <input type="email" required placeholder="Your email for weekly roundups" class="w-full sm:w-2/3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-600" />
+            <button class="rounded-xl bg-indigo-600 text-white px-5 py-3 font-semibold hover:bg-indigo-700">Join</button>
+          </form>
+          <p id="subMsg" class="mt-2 text-sm text-green-600 hidden">Subscribed! Check your inbox. 🚗</p>
+        </div>
+        <div class="relative">
+          <img src="https://images.unsplash.com/photo-1519245659620-e859806a8d3f?q=80&w=1400&auto=format&fit=crop" alt="Sportscar on a road" class="rounded-3xl shadow-md"/>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Controls -->
+  <section class="border-y border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-gray-900/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+      <div class="flex gap-2">
+        <button data-filter="All" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">All</button>
+        <button data-filter="News" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">News</button>
+        <button data-filter="Reviews" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">Reviews</button>
+        <button data-filter="Launches" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">Launches</button>
+        <button data-filter="EVs" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">EVs</button>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <input id="search" class="w-full sm:w-72 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Search posts…"/>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main -->
+  <main id="app" class="max-w-7xl mx-auto px-4 sm:px-6 py-10"></main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 dark:border-gray-800 py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 grid sm:grid-cols-2 gap-6 items-center">
+      <p class="text-sm text-gray-600 dark:text-gray-400">© <span id="year"></span> AutoPulse • Made with ❤️ and octane.</p>
+      <div class="justify-self-end flex gap-4 text-sm">
+        <a class="hover:text-indigo-600" href="#about">About</a>
+        <a class="hover:text-indigo-600" href="#contact">Contact</a>
+        <a class="hover:text-indigo-600" href="#rss">RSS</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Templates injected by JS: Home grid & Article view -->
+
+  <script>
+    // --- Demo content (replace with your own) ---
+    const POSTS = [
+      {
+        title: "2025 Mahindra XUV700 Facelift: What’s new?",
+        slug: "mahindra-xuv700-facelift-2025",
+        date: "2025-08-10",
+        category: "News",
+        tags: ["Mahindra", "SUV", "India"],
+        cover: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1600&auto=format&fit=crop",
+        excerpt: "Updated design, more ADAS features, and a quieter cabin. Here’s the quick take.",
+        content: `
+          <p>The 2025 XUV700 receives a mild exterior refresh with a new grille pattern, redesigned DRLs, and aero wheels on higher variants. Inside, the cabin gets improved sound insulation and a revised infotainment UI.</p>
+          <h3 class="text-xl font-semibold mt-6">Key changes</h3>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>ADAS 2.0 with better lane centering</li>
+            <li>Wireless Android Auto & CarPlay standard</li>
+            <li>Retuned suspension for better low‑speed ride</li>
+          </ul>
+          <p class="mt-4">Pricing sees a modest bump of 1–2%. If you were waiting for the update, this is the one to get.</p>
+        `
+      },
+      {
+        title: "Review: Tata Nexon EV Long Term (12,000 km)",
+        slug: "tata-nexon-ev-long-term-review",
+        date: "2025-07-29",
+        category: "Reviews",
+        tags: ["Tata", "EV", "Review"],
+        cover: "https://images.unsplash.com/photo-1629301070532-9aa8c2e876db?q=80&w=1600&auto=format&fit=crop",
+        excerpt: "Real‑world range, fast charging, and what surprised me after months of use.",
+        content: `
+          <p>Over 12,000 km the Nexon EV averaged 260–280 km per charge in mixed city usage with AC. Highway legs at 100 km/h yield ~220 km. Tyre wear is minimal; cabin remains squeak‑free.</p>
+          <p>DC fast charging from 10→80% took ~55 minutes on a 30–40 kW charger. Software niggles exist, but overall running costs are ridiculously low.</p>
+          <h3 class="text-xl font-semibold mt-6">Verdict</h3>
+          <p>Solid city EV with enough highway ability if you plan stops. 8/10.</p>
+        `
+      },
+      {
+        title: "Launch: Hyundai Creta N Line gets 6‑speed manual",
+        slug: "hyundai-creta-n-line-manual-launch",
+        date: "2025-08-20",
+        category: "Launches",
+        tags: ["Hyundai", "N Line"],
+        cover: "https://images.unsplash.com/photo-1619767886558-efdc259cde1b?q=80&w=1600&auto=format&fit=crop",
+        excerpt: "Enthusiasts rejoice — the N Line now offers a proper stick shift.",
+        content: `
+          <p>Hyundai has introduced a 6‑speed manual on the Creta N Line with revised steering calibration and a fruitier exhaust note.</p>
+          <p>Bookings open nationwide; deliveries start early next month. Expect a small price advantage over the DCT.</p>
+        `
+      },
+      {
+        title: "Explained: DC vs AC fast charging in India",
+        slug: "dc-vs-ac-fast-charging-india",
+        date: "2025-06-18",
+        category: "EVs",
+        tags: ["EV", "Charging"],
+        cover: "https://images.unsplash.com/photo-1542367597-8849eb47a1c5?q=80&w=1600&auto=format&fit=crop",
+        excerpt: "Understand connector types, real speeds, and battery health best practices.",
+        content: `
+          <p>AC charging (AC001/Type‑2) converts power inside the car via an onboard charger; DC fast charging (GB/T, CCS2) feeds the battery directly, bypassing the onboard charger.</p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>AC: 3.3–22 kW typical → best for home/office</li>
+            <li>DC: 30–120 kW common in India → road trips</li>
+            <li>Keep SoC between 10–80% for longevity</li>
+          </ul>
+        `
+      }
+    ];
+
+    // --- Simple state ---
+    const state = {
+      filter: 'All',
+      query: ''
+    };
+
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
+    // --- Routing ---
+    function router() {
+      const hash = location.hash.slice(1);
+      if (!hash || hash === '/') return renderHome();
+      if (hash.startsWith('category/')) return renderHome(hash.split('/')[1]);
+      if (hash.startsWith('post/')) return renderPost(hash.split('/')[1]);
+      if (hash === 'rss') return downloadRSS();
+      if (hash === 'about') return renderAbout();
+      if (hash === 'contact') return renderContact();
+      return renderHome();
+    }
+
+    // --- Helpers ---
+    const formatDate = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+
+    function postCard(p) {
+      return `
+        <article class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-md transition">
+          <a href="#post/${p.slug}" class="block">
+            <img src="${p.cover}" alt="${p.title}" class="h-44 w-full object-cover" loading="lazy"/>
+            <div class="p-5">
+              <div class="flex items-center gap-2 text-xs text-indigo-700 dark:text-indigo-400">
+                <span class="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/40">${p.category}</span>
+                <span class="text-gray-500 dark:text-gray-400">•</span>
+                <time datetime="${p.date}">${formatDate(p.date)}</time>
+              </div>
+              <h2 class="mt-2 text-lg font-semibold leading-snug">${p.title}</h2>
+              <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">${p.excerpt}</p>
+              <div class="mt-3 text-sm font-medium text-indigo-700 dark:text-indigo-400">Read more →</div>
+            </div>
+          </a>
+        </article>`
+    }
+
+    function renderHome(categoryFromRoute) {
+      const app = $('#app');
+      const category = categoryFromRoute || state.filter;
+
+      // apply active filter button state
+      $$('.filter-btn').forEach(btn => {
+        btn.classList.toggle('bg-indigo-600', btn.dataset.filter === category);
+        btn.classList.toggle('text-white', btn.dataset.filter === category);
+      });
+
+      let list = [...POSTS].sort((a,b)=> new Date(b.date) - new Date(a.date));
+      if (category && category !== 'All') list = list.filter(p => p.category === category);
+      if (state.query) {
+        const q = state.query.toLowerCase();
+        list = list.filter(p => [p.title, p.excerpt, p.tags.join(' ')].join(' ').toLowerCase().includes(q));
+      }
+
+      const html = `
+        <div class="fade-enter fade-enter-active">
+          <h2 class="text-2xl font-bold mb-4">Latest ${category === 'All' ? '' : category}</h2>
+          ${list.length ?
+            `<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">${list.map(postCard).join('')}</div>` :
+            `<div class="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 p-10 text-center text-gray-500">No posts match your search.</div>`
+          }
+        </div>`;
+      app.innerHTML = html;
+      updateJSONLD('home');
+    }
+
+    function renderPost(slug) {
+      const p = POSTS.find(x => x.slug === slug);
+      const app = $('#app');
+      if (!p) {
+        app.innerHTML = `<div class='p-10 text-center'>Post not found. <a class='text-indigo-600' href='#'>Go home</a></div>`;
+        return;
+      }
+      app.innerHTML = `
+        <article class="fade-enter fade-enter-active max-w-3xl mx-auto">
+          <a href="#" class="text-sm text-indigo-700 dark:text-indigo-400">← Back</a>
+          <h1 class="mt-3 text-3xl sm:text-4xl font-extrabold">${p.title}</h1>
+          <div class="mt-2 flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+            <span class="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">${p.category}</span>
+            <time datetime="${p.date}">• ${formatDate(p.date)}</time>
+          </div>
+          <img src="${p.cover}" alt="${p.title}" class="mt-6 rounded-3xl shadow"/>
+          <div class="prose dark:prose-invert prose-indigo max-w-none mt-6">
+            ${p.content}
+          </div>
+          <div class="mt-8 flex items-center gap-3">
+            <button class="bookmark rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" data-slug="${p.slug}">🔖 Bookmark</button>
+            <button class="share rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" data-slug="${p.slug}">📤 Share</button>
+          </div>
+        </article>`;
+
+      // wire actions
+      $('.bookmark').addEventListener('click', (e)=>{
+        const s = e.currentTarget.dataset.slug;
+        const key = 'ap.bookmarks';
+        const cur = new Set(JSON.parse(localStorage.getItem(key)||'[]'));
+        cur.has(s) ? cur.delete(s) : cur.add(s);
+        localStorage.setItem(key, JSON.stringify([...cur]));
+        e.currentTarget.textContent = cur.has(s) ? '✅ Bookmarked' : '🔖 Bookmark';
+      });
+      $('.share').addEventListener('click', async ()=>{
+        const url = location.origin + location.pathname + '#post/' + p.slug;
+        try { await navigator.clipboard.writeText(url); alert('Link copied to clipboard'); }
+        catch { prompt('Copy this link:', url); }
+      });
+
+      updateJSONLD('post', p);
+    }
+
+    function renderAbout(){
+      $('#app').innerHTML = `
+        <div class="fade-enter fade-enter-active max-w-3xl mx-auto">
+          <h1 class="text-3xl font-extrabold">About AutoPulse</h1>
+          <p class="mt-4 text-lg text-gray-700 dark:text-gray-300">I write quick, useful takes on Indian car news and honest, numbers‑backed reviews. Expect range tests, highway FE, and service costs.
+          </p>
+        </div>`;
+      updateJSONLD('page', {title:'About AutoPulse'});
+    }
+
+    function renderContact(){
+      $('#app').innerHTML = `
+        <div class="fade-enter fade-enter-active max-w-3xl mx-auto">
+          <h1 class="text-3xl font-extrabold">Contact</h1>
+          <form class="mt-6 grid gap-4 max-w-xl" onsubmit="event.preventDefault(); alert('Thanks! I\'ll reply soon.'); this.reset();">
+            <input required placeholder="Your name" class="rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-4 py-3"/>
+            <input type="email" required placeholder="Email" class="rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-4 py-3"/>
+            <textarea required rows="5" placeholder="Message" class="rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-4 py-3"></textarea>
+            <button class="justify-self-start rounded-xl bg-indigo-600 text-white px-5 py-3 font-semibold hover:bg-indigo-700">Send</button>
+          </form>
+        </div>`;
+      updateJSONLD('page', {title:'Contact'});
+    }
+
+    // RSS (very basic) download
+    function downloadRSS(){
+      const rss = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n<channel>\n<title>AutoPulse</title>\n<link>${location.origin+location.pathname}</link>\n<description>Car news & reviews</description>\n${POSTS.map(p=>`<item>\n<title>${p.title}</title>\n<link>${location.origin+location.pathname}#post/${p.slug}</link>\n<pubDate>${new Date(p.date).toUTCString()}</pubDate>\n<description><![CDATA[${p.excerpt}]]></description>\n</item>`).join('\n')}\n</channel>\n</rss>`;
+      const blob = new Blob([rss], {type:'application/rss+xml'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'autopulse.xml';
+      a.click();
+      history.replaceState(null, '', '#');
+    }
+
+    // JSON‑LD for SEO
+    function updateJSONLD(type, post){
+      // remove old
+      $$('script[type="application/ld+json"]').forEach(n=>n.remove());
+      const site = {
+        "@context":"https://schema.org",
+        "@type":"Blog",
+        name: "AutoPulse",
+        url: location.origin + location.pathname,
+        description: "Car news & reviews blog"
+      };
+      const el1 = document.createElement('script');
+      el1.type = 'application/ld+json';
+      el1.textContent = JSON.stringify(site);
+      document.head.appendChild(el1);
+
+      if (type === 'post' && post){
+        const el2 = document.createElement('script');
+        el2.type = 'application/ld+json';
+        el2.textContent = JSON.stringify({
+          "@context":"https://schema.org",
+          "@type":"BlogPosting",
+          headline: post.title,
+          datePublished: post.date,
+          image: [post.cover],
+          author: {"@type":"Person","name":"AutoPulse"},
+          mainEntityOfPage: location.href
+        });
+        document.head.appendChild(el2);
+      }
+    }
+
+    // --- Events ---
+    addEventListener('hashchange', router);
+
+    // filters
+    $$(".filter-btn").forEach(b => b.addEventListener('click', ()=>{
+      state.filter = b.dataset.filter;
+      location.hash = state.filter === 'All' ? '/' : `category/${state.filter}`;
+    }));
+
+    // search
+    $('#search').addEventListener('input', (e)=>{ state.query = e.target.value.trim(); router(); });
+
+    // theme toggle
+    const themeToggle = $('#themeToggle');
+    const themeKey = 'ap.theme';
+    function applyTheme(t){ document.documentElement.classList.toggle('dark', t==='dark'); localStorage.setItem(themeKey, t); }
+    const saved = localStorage.getItem(themeKey) || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
+    applyTheme(saved);
+    themeToggle.addEventListener('click', ()=> applyTheme(document.documentElement.classList.contains('dark') ? 'light':'dark'));
+
+    // footer year & subscribe demo
+    $('#year').textContent = new Date().getFullYear();
+    $('#subscribe').addEventListener('submit', (e)=>{ e.preventDefault(); $('#subMsg').classList.remove('hidden'); e.target.reset(); });
+
+    // boot
+    router();
+  </script>
+</body>
+</html>
