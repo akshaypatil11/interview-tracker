@@ -1,387 +1,665 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-bs-theme="light">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AutoPulse – Car News & Reviews</title>
-  <meta name="description" content="Personal blog for daily car news, launches, reviews, and opinions." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%235b21b6' d='M12 40h40l6-8-6-8H12l-6 8z'/%3E%3Ccircle cx='20' cy='44' r='6' fill='%2337373d'/%3E%3Ccircle cx='44' cy='44' r='6' fill='%2337373d'/%3E%3C/svg%3E"/>
-
-  <!-- TailwindCSS CDN (no build tools needed) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { display: ['Inter', 'ui-sans-serif', 'system-ui'] },
-        }
-      },
-      darkMode: 'class'
-    }
-  </script>
+  <title>Interview Tracker</title>
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <style>
-    /* smooth fade for route changes */
-    .fade-enter { opacity: 0; transform: translateY(8px); }
-    .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity .25s, transform .25s; }
+    :root{
+      --brand: #4f46e5; /* indigo-600 */
+    }
+    body{min-height:100vh;}
+    .navbar-brand .dot{color:var(--brand)}
+    .badge-soft{background:rgba(79,70,229,.1); color:#4338ca;}
+    .status-badge{font-weight:600}
+    .status-Applied{background:#e7f1ff; color:#0b5ed7}
+    .status-Online%20Assessment{background:#f8f0ff; color:#6f42c1}
+    .status-Screening{background:#fff3cd; color:#7a5a00}
+    .status-Technical{background:#e7f5ff; color:#055160}
+    .status-HR{background:#f1f8e9; color:#2f6f00}
+    .status-Offer{background:#e6ffed; color:#0a7d2a}
+    .status-Rejected{background:#fde2e1; color:#b02a37}
+    .status-On%20Hold{background:#e9ecef; color:#495057}
+
+    .table thead th{user-select:none;}
+
+    /* Kanban */
+    .kanban{display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:1rem}
+    .kanban-column{background:var(--bs-body-bg); border:1px dashed var(--bs-border-color); border-radius:.75rem; padding:.75rem;}
+    .kanban-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:.5rem}
+    .kanban-dropzone{min-height:120px}
+    .kanban-card{background:var(--bs-tertiary-bg); border:1px solid var(--bs-border-color); border-radius:.75rem; padding:.75rem; margin-bottom:.5rem; cursor:grab}
+
+    /* Compact form labels */
+    .form-label{font-weight:600}
+
+    /* Hide native file input */
+    #importFile{display:none}
+
+    /* Sticky toolbar */
+    .toolbar{position:sticky; top:0; z-index:1020; background:var(--bs-body-bg); border-bottom:1px solid var(--bs-border-color)}
+
+    .progress.progress-thin{height:.5rem}
+
+    .empty-state{border:1px dashed var(--bs-border-color); border-radius:.75rem; padding:2rem; text-align:center}
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-  <!-- Header / Navbar -->
-  <header class="sticky top-0 z-40 backdrop-blur bg-white/80 dark:bg-gray-900/70 border-b border-gray-200/60 dark:border-gray-800">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6">
-      <div class="flex items-center justify-between h-16">
-        <a href="#" class="flex items-center gap-2 font-bold text-xl">
-          <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">AP</span>
-          <span>AutoPulse</span>
-        </a>
-        <nav class="hidden md:flex items-center gap-6 text-sm">
-          <a href="#" class="hover:text-indigo-600">Home</a>
-          <a href="#category/News" class="hover:text-indigo-600">News</a>
-          <a href="#category/Reviews" class="hover:text-indigo-600">Reviews</a>
-          <a href="#category/EVs" class="hover:text-indigo-600">EVs</a>
-        </nav>
-        <div class="flex items-center gap-2">
-          <button id="themeToggle" class="rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Toggle dark mode">🌗</button>
-          <a href="#subscribe" class="hidden sm:inline-block bg-indigo-600 text-white px-3 py-1.5 rounded-xl text-sm font-semibold hover:bg-indigo-700">Subscribe</a>
+<body>
+  <nav class="navbar navbar-expand-lg border-bottom">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="#">
+        <i class="bi bi-briefcase me-1 text-primary"></i>
+        Interview<span class="dot">·</span>Tracker
+      </a>
+      <div class="d-flex align-items-center gap-2 ms-auto">
+        <div class="input-group d-none d-md-flex">
+          <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
+          <input id="searchInput" class="form-control" placeholder="Search company, role, notes…" />
+        </div>
+        <button id="themeToggle" class="btn btn-outline-secondary" type="button" title="Toggle theme"><i class="bi bi-moon-stars"></i></button>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navColl" aria-controls="navColl" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+      <div class="collapse navbar-collapse" id="navColl">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="#" data-view="list">List</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-view="kanban">Kanban</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#aboutModal">About</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="toolbar py-2">
+    <div class="container-fluid">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+          <i class="bi bi-plus-lg me-1"></i> Add Interview
+        </button>
+        <div class="vr"></div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <select id="statusFilter" class="form-select form-select-sm" style="width:200px">
+            <option value="">All statuses</option>
+            <option>Applied</option>
+            <option>Online Assessment</option>
+            <option>Screening</option>
+            <option>Technical</option>
+            <option>HR</option>
+            <option>Offer</option>
+            <option>On Hold</option>
+            <option>Rejected</option>
+          </select>
+          <select id="priorityFilter" class="form-select form-select-sm" style="width:160px">
+            <option value="">All priorities</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+          <select id="modeFilter" class="form-select form-select-sm" style="width:160px">
+            <option value="">Any mode</option>
+            <option>Onsite</option>
+            <option>Hybrid</option>
+            <option>Remote</option>
+          </select>
+          <input id="dateFrom" type="date" class="form-control form-control-sm" style="width:160px" placeholder="From" />
+          <input id="dateTo" type="date" class="form-control form-control-sm" style="width:160px" placeholder="To" />
+          <button id="clearFilters" class="btn btn-sm btn-outline-secondary">Clear</button>
+        </div>
+        <div class="ms-auto d-flex gap-2">
+          <button id="exportBtn" class="btn btn-sm btn-outline-primary"><i class="bi bi-download me-1"></i>Export</button>
+          <label class="btn btn-sm btn-outline-secondary mb-0" for="importFile"><i class="bi bi-upload me-1"></i>Import</label>
+          <input id="importFile" type="file" accept="application/json" />
         </div>
       </div>
     </div>
-  </header>
+  </div>
 
-  <!-- Hero -->
-  <section class="relative overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
-      <div class="grid lg:grid-cols-2 gap-10 items-center">
-        <div>
-          <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight">
-            Car news, launches & no‑nonsense reviews.
-          </h1>
-          <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-            Welcome to <span class="font-semibold">AutoPulse</span> — my personal blog where I break down the latest auto headlines, share hands‑on reviews, and help you decide what actually matters.
-          </p>
-          <form id="subscribe" class="mt-6 flex gap-3">
-            <input type="email" required placeholder="Your email for weekly roundups" class="w-full sm:w-2/3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-600" />
-            <button class="rounded-xl bg-indigo-600 text-white px-5 py-3 font-semibold hover:bg-indigo-700">Join</button>
-          </form>
-          <p id="subMsg" class="mt-2 text-sm text-green-600 hidden">Subscribed! Check your inbox. 🚗</p>
-        </div>
-        <div class="relative">
-          <img src="https://images.unsplash.com/photo-1519245659620-e859806a8d3f?q=80&w=1400&auto=format&fit=crop" alt="Sportscar on a road" class="rounded-3xl shadow-md"/>
-        </div>
-      </div>
+  <main class="container-fluid py-3" id="viewList">
+    <div id="tableWrap" class="table-responsive">
+      <table class="table align-middle" id="interviewTable">
+        <thead>
+          <tr>
+            <th data-sort="company">Company <i class="bi bi-arrow-down-up ms-1"></i></th>
+            <th data-sort="role">Role</th>
+            <th data-sort="location">Location</th>
+            <th data-sort="status">Status</th>
+            <th data-sort="stage">Stage</th>
+            <th data-sort="appliedDate">Applied</th>
+            <th data-sort="nextStep">Next Step</th>
+            <th data-sort="priority">Priority</th>
+            <th data-sort="updatedAt">Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div id="emptyState" class="empty-state d-none">
+      <h5 class="mb-1">No interviews yet</h5>
+      <p class="text-secondary mb-3">Click “Add Interview” to create your first record.</p>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal"><i class="bi bi-plus-lg me-1"></i> Add Interview</button>
+    </div>
+  </main>
+
+  <section class="container-fluid py-3 d-none" id="viewKanban">
+    <div class="kanban" id="kanbanBoard">
+      <!-- Columns inserted via JS -->
     </div>
   </section>
 
-  <!-- Controls -->
-  <section class="border-y border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-gray-900/50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-      <div class="flex gap-2">
-        <button data-filter="All" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">All</button>
-        <button data-filter="News" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">News</button>
-        <button data-filter="Reviews" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">Reviews</button>
-        <button data-filter="Launches" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">Launches</button>
-        <button data-filter="EVs" class="filter-btn rounded-xl px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">EVs</button>
-      </div>
-      <div class="flex items-center gap-2 w-full sm:w-auto">
-        <input id="search" class="w-full sm:w-72 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Search posts…"/>
+  <!-- Edit/Add Modal -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content needs-validation" novalidate id="editForm">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-pencil-square me-1"></i> <span id="modalTitle">Add Interview</span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="id" />
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Company <span class="text-danger">*</span></label>
+              <input id="company" class="form-control" required />
+              <div class="invalid-feedback">Company is required.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Role <span class="text-danger">*</span></label>
+              <input id="role" class="form-control" required />
+              <div class="invalid-feedback">Role is required.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select id="status" class="form-select">
+                <option>Applied</option>
+                <option>Online Assessment</option>
+                <option>Screening</option>
+                <option>Technical</option>
+                <option>HR</option>
+                <option>Offer</option>
+                <option>On Hold</option>
+                <option>Rejected</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Stage (% complete)</label>
+              <input id="stage" type="range" min="0" max="100" step="5" class="form-range"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Priority</label>
+              <select id="priority" class="form-select">
+                <option>Medium</option>
+                <option>High</option>
+                <option>Low</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Mode</label>
+              <select id="mode" class="form-select">
+                <option>Hybrid</option>
+                <option>Onsite</option>
+                <option>Remote</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Location</label>
+              <input id="location" class="form-control" placeholder="City / Country" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Applied Date</label>
+              <input id="appliedDate" type="date" class="form-control" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Next Step (due)</label>
+              <input id="nextStep" type="date" class="form-control" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">CTC / Salary</label>
+              <input id="ctc" class="form-control" placeholder="e.g., ₹20 LPA" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Contact Name</label>
+              <input id="contact" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Contact Email / Phone</label>
+              <input id="contactInfo" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Source / Link</label>
+              <input id="source" class="form-control" placeholder="Job post URL or source" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Resume / Notes Link</label>
+              <input id="links" class="form-control" placeholder="Drive/Notion link" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes</label>
+              <textarea id="notes" class="form-control" rows="4" placeholder="Key points, Q&As, feedback, to-dos…"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">About this app</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2">A single‑file, offline‑friendly tracker for your interview applications. Data is saved in your browser (localStorage). Use Export/Import to back up or move devices.</p>
+          <ul>
+            <li>Clean Bootstrap 5 UI with light/dark mode</li>
+            <li>List & Kanban views, drag cards between stages</li>
+            <li>Search, filters, sort by any column</li>
+            <li>Add rich details: contacts, links, salary, notes</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" data-bs-dismiss="modal">Great!</button>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Main -->
-  <main id="app" class="max-w-7xl mx-auto px-4 sm:px-6 py-10"></main>
-
-  <!-- Footer -->
-  <footer class="border-t border-gray-200 dark:border-gray-800 py-10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 grid sm:grid-cols-2 gap-6 items-center">
-      <p class="text-sm text-gray-600 dark:text-gray-400">© <span id="year"></span> AutoPulse • Made with ❤️ and octane.</p>
-      <div class="justify-self-end flex gap-4 text-sm">
-        <a class="hover:text-indigo-600" href="#about">About</a>
-        <a class="hover:text-indigo-600" href="#contact">Contact</a>
-        <a class="hover:text-indigo-600" href="#rss">RSS</a>
-      </div>
+  <!-- Toasts -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+    <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-body"></div>
     </div>
-  </footer>
+  </div>
 
-  <!-- Templates injected by JS: Home grid & Article view -->
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // --- Demo content (replace with your own) ---
-    const POSTS = [
-      {
-        title: "2025 Mahindra XUV700 Facelift: What’s new?",
-        slug: "mahindra-xuv700-facelift-2025",
-        date: "2025-08-10",
-        category: "News",
-        tags: ["Mahindra", "SUV", "India"],
-        cover: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1600&auto=format&fit=crop",
-        excerpt: "Updated design, more ADAS features, and a quieter cabin. Here’s the quick take.",
-        content: `
-          <p>The 2025 XUV700 receives a mild exterior refresh with a new grille pattern, redesigned DRLs, and aero wheels on higher variants. Inside, the cabin gets improved sound insulation and a revised infotainment UI.</p>
-          <h3 class="text-xl font-semibold mt-6">Key changes</h3>
-          <ul class="list-disc pl-6 space-y-2">
-            <li>ADAS 2.0 with better lane centering</li>
-            <li>Wireless Android Auto & CarPlay standard</li>
-            <li>Retuned suspension for better low‑speed ride</li>
-          </ul>
-          <p class="mt-4">Pricing sees a modest bump of 1–2%. If you were waiting for the update, this is the one to get.</p>
-        `
-      },
-      {
-        title: "Review: Tata Nexon EV Long Term (12,000 km)",
-        slug: "tata-nexon-ev-long-term-review",
-        date: "2025-07-29",
-        category: "Reviews",
-        tags: ["Tata", "EV", "Review"],
-        cover: "https://images.unsplash.com/photo-1629301070532-9aa8c2e876db?q=80&w=1600&auto=format&fit=crop",
-        excerpt: "Real‑world range, fast charging, and what surprised me after months of use.",
-        content: `
-          <p>Over 12,000 km the Nexon EV averaged 260–280 km per charge in mixed city usage with AC. Highway legs at 100 km/h yield ~220 km. Tyre wear is minimal; cabin remains squeak‑free.</p>
-          <p>DC fast charging from 10→80% took ~55 minutes on a 30–40 kW charger. Software niggles exist, but overall running costs are ridiculously low.</p>
-          <h3 class="text-xl font-semibold mt-6">Verdict</h3>
-          <p>Solid city EV with enough highway ability if you plan stops. 8/10.</p>
-        `
-      },
-      {
-        title: "Launch: Hyundai Creta N Line gets 6‑speed manual",
-        slug: "hyundai-creta-n-line-manual-launch",
-        date: "2025-08-20",
-        category: "Launches",
-        tags: ["Hyundai", "N Line"],
-        cover: "https://images.unsplash.com/photo-1619767886558-efdc259cde1b?q=80&w=1600&auto=format&fit=crop",
-        excerpt: "Enthusiasts rejoice — the N Line now offers a proper stick shift.",
-        content: `
-          <p>Hyundai has introduced a 6‑speed manual on the Creta N Line with revised steering calibration and a fruitier exhaust note.</p>
-          <p>Bookings open nationwide; deliveries start early next month. Expect a small price advantage over the DCT.</p>
-        `
-      },
-      {
-        title: "Explained: DC vs AC fast charging in India",
-        slug: "dc-vs-ac-fast-charging-india",
-        date: "2025-06-18",
-        category: "EVs",
-        tags: ["EV", "Charging"],
-        cover: "https://images.unsplash.com/photo-1542367597-8849eb47a1c5?q=80&w=1600&auto=format&fit=crop",
-        excerpt: "Understand connector types, real speeds, and battery health best practices.",
-        content: `
-          <p>AC charging (AC001/Type‑2) converts power inside the car via an onboard charger; DC fast charging (GB/T, CCS2) feeds the battery directly, bypassing the onboard charger.</p>
-          <ul class="list-disc pl-6 space-y-2">
-            <li>AC: 3.3–22 kW typical → best for home/office</li>
-            <li>DC: 30–120 kW common in India → road trips</li>
-            <li>Keep SoC between 10–80% for longevity</li>
-          </ul>
-        `
-      }
-    ];
+  // --------- Utilities ---------
+  const $ = (s, root=document) => root.querySelector(s);
+  const $$ = (s, root=document) => Array.from(root.querySelectorAll(s));
+  const storageKey = 'interviews_v1';
+  const themeKey = 'theme_pref_v1';
 
-    // --- Simple state ---
-    const state = {
-      filter: 'All',
-      query: ''
+  const STATUS = [
+    'Applied','Online Assessment','Screening','Technical','HR','Offer','On Hold','Rejected'
+  ];
+
+  const statusOrder = Object.fromEntries(STATUS.map((s,i)=>[s,i]));
+
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(storageKey)) || []; }catch{ return []; }
+  }
+  function save(data){ localStorage.setItem(storageKey, JSON.stringify(data)); }
+
+  function toast(msg){
+    const el = $('#toast');
+    $('.toast-body', el).textContent = msg;
+    bootstrap.Toast.getOrCreateInstance(el, {delay:2000}).show();
+  }
+
+  function fmtDate(d){ if(!d) return ''; const x = new Date(d); if(Number.isNaN(x)) return ''; return x.toLocaleDateString(); }
+
+  // --------- State ---------
+  let data = load();
+  let sortKey = 'updatedAt';
+  let sortDir = 'desc';
+  let activeView = 'list';
+
+  // --------- Rendering ---------
+  function applyFilters(items){
+    const q = $('#searchInput').value.trim().toLowerCase();
+    const fStatus = $('#statusFilter').value;
+    const fPriority = $('#priorityFilter').value;
+    const fMode = $('#modeFilter').value;
+    const from = $('#dateFrom').value ? new Date($('#dateFrom').value) : null;
+    const to = $('#dateTo').value ? new Date($('#dateTo').value) : null;
+
+    return items.filter(it=>{
+      if(fStatus && it.status !== fStatus) return false;
+      if(fPriority && it.priority !== fPriority) return false;
+      if(fMode && it.mode !== fMode) return false;
+      if(q){
+        const hay = `${it.company} ${it.role} ${it.location||''} ${it.notes||''}`.toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      if(from){ const d = it.appliedDate ? new Date(it.appliedDate) : null; if(!d || d < from) return false; }
+      if(to){ const d = it.appliedDate ? new Date(it.appliedDate) : null; if(!d || d > to) return false; }
+      return true;
+    });
+  }
+
+  function sortItems(items){
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return items.sort((a,b)=>{
+      let va = a[sortKey], vb = b[sortKey];
+      if(sortKey === 'status'){ va = statusOrder[a.status] ?? 99; vb = statusOrder[b.status] ?? 99; }
+      if(sortKey === 'stage'){ va = +a.stage||0; vb = +b.stage||0; }
+      if(['appliedDate','nextStep','updatedAt'].includes(sortKey)){
+        va = va ? new Date(va).getTime() : 0; vb = vb ? new Date(vb).getTime() : 0;
+      }
+      if(typeof va === 'string') va = va.toLowerCase();
+      if(typeof vb === 'string') vb = vb.toLowerCase();
+      if(va < vb) return -1*dir;
+      if(va > vb) return 1*dir;
+      return 0;
+    });
+  }
+
+  function renderTable(){
+    const items = sortItems(applyFilters([...data]));
+    const tbody = $('#tableBody');
+    tbody.innerHTML = '';
+
+    if(items.length === 0){
+      $('#tableWrap').classList.add('d-none');
+      $('#emptyState').classList.remove('d-none');
+      return;
+    } else {
+      $('#tableWrap').classList.remove('d-none');
+      $('#emptyState').classList.add('d-none');
+    }
+
+    for(const it of items){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="fw-semibold">${it.company}</td>
+        <td>${it.role||''}</td>
+        <td>${it.location||''}</td>
+        <td><span class="badge status-badge status-${encodeURIComponent(it.status)}">${it.status}</span></td>
+        <td style="min-width:140px">
+          <div class="d-flex align-items-center gap-2">
+            <div class="progress progress-thin flex-grow-1" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${it.stage||0}">
+              <div class="progress-bar" style="width:${it.stage||0}%"></div>
+            </div>
+            <small class="text-secondary">${it.stage||0}%</small>
+          </div>
+        </td>
+        <td>${fmtDate(it.appliedDate)}</td>
+        <td>${fmtDate(it.nextStep)} ${it.nextStep && new Date(it.nextStep) < new Date() ? '<span class="badge text-bg-danger ms-1">Due</span>':''}</td>
+        <td><span class="badge text-bg-${it.priority==='High'?'danger':it.priority==='Low'?'secondary':'warning'}">${it.priority||''}</span></td>
+        <td>${fmtDate(it.updatedAt)}</td>
+        <td>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary" data-action="view" title="View"><i class="bi bi-eye"></i></button>
+            <button class="btn btn-outline-primary" data-action="edit" title="Edit"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-outline-danger" data-action="delete" title="Delete"><i class="bi bi-trash"></i></button>
+          </div>
+        </td>`;
+      tr.dataset.id = it.id;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function renderKanban(){
+    const board = $('#kanbanBoard');
+    board.innerHTML = '';
+    const byStatus = new Map(STATUS.map(s=>[s,[]]));
+    for(const it of applyFilters([...data])){
+      if(!byStatus.has(it.status)) byStatus.set(it.status, []);
+      byStatus.get(it.status).push(it);
+    }
+    for(const s of STATUS){
+      const col = document.createElement('div');
+      col.className = 'kanban-column';
+      col.innerHTML = `
+        <div class="kanban-header">
+          <div class="fw-semibold">${s}</div>
+          <span class="badge rounded-pill text-bg-secondary">${(byStatus.get(s)||[]).length}</span>
+        </div>
+        <div class="kanban-dropzone" data-status="${s}"></div>`;
+      board.appendChild(col);
+
+      const zone = $('.kanban-dropzone', col);
+      for(const it of sortItems(byStatus.get(s)||[])){
+        const card = document.createElement('div');
+        card.className = 'kanban-card';
+        card.draggable = true;
+        card.dataset.id = it.id;
+        card.innerHTML = `
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold">${it.company}</div>
+              <div class="small text-secondary">${it.role||''}</div>
+            </div>
+            <span class="badge text-bg-${it.priority==='High'?'danger':it.priority==='Low'?'secondary':'warning'}">${it.priority||''}</span>
+          </div>
+          <div class="mt-2">
+            <div class="progress progress-thin"><div class="progress-bar" style="width:${it.stage||0}%"></div></div>
+          </div>
+          <div class="small mt-2 d-flex justify-content-between">
+            <span><i class="bi bi-calendar-event"></i> ${fmtDate(it.nextStep)||'—'}</span>
+            <button class="btn btn-sm btn-outline-secondary" data-action="edit"><i class="bi bi-pencil"></i></button>
+          </div>`;
+        zone.appendChild(card);
+      }
+    }
+
+    // DnD handlers
+    let draggedId = null;
+    board.addEventListener('dragstart', e=>{
+      const card = e.target.closest('.kanban-card');
+      if(card){ draggedId = card.dataset.id; }
+    });
+    board.addEventListener('dragover', e=>{
+      if(e.target.closest('.kanban-dropzone')) e.preventDefault();
+    });
+    board.addEventListener('drop', e=>{
+      const zone = e.target.closest('.kanban-dropzone');
+      if(zone && draggedId){
+        const item = data.find(x=>x.id===draggedId);
+        if(item){ item.status = zone.dataset.status; item.updatedAt = new Date().toISOString(); save(data); render(); toast('Status updated'); }
+        draggedId = null;
+      }
+    });
+  }
+
+  function render(){
+    if(activeView==='list'){ renderTable(); }
+    else { renderKanban(); }
+  }
+
+  // --------- CRUD ---------
+  function openForCreate(){
+    $('#modalTitle').textContent = 'Add Interview';
+    $('#editForm').reset();
+    $('#id').value = '';
+    $('#status').value = 'Applied';
+    $('#priority').value = 'Medium';
+    $('#mode').value = 'Hybrid';
+  }
+
+  function openForEdit(id){
+    const it = data.find(x=>x.id===id);
+    if(!it) return;
+    $('#modalTitle').textContent = 'Edit Interview';
+    $('#id').value = it.id;
+    $('#company').value = it.company||'';
+    $('#role').value = it.role||'';
+    $('#status').value = it.status||'Applied';
+    $('#stage').value = it.stage||0;
+    $('#priority').value = it.priority||'Medium';
+    $('#mode').value = it.mode||'Hybrid';
+    $('#location').value = it.location||'';
+    $('#appliedDate').value = it.appliedDate ? it.appliedDate.split('T')[0] : '';
+    $('#nextStep').value = it.nextStep ? it.nextStep.split('T')[0] : '';
+    $('#ctc').value = it.ctc||'';
+    $('#contact').value = it.contact||'';
+    $('#contactInfo').value = it.contactInfo||'';
+    $('#source').value = it.source||'';
+    $('#links').value = it.links||'';
+    $('#notes').value = it.notes||'';
+    const modal = new bootstrap.Modal($('#editModal')); modal.show();
+  }
+
+  function removeItem(id){
+    const idx = data.findIndex(x=>x.id===id);
+    if(idx>-1){ data.splice(idx,1); save(data); render(); toast('Deleted'); }
+  }
+
+  // --------- Events ---------
+  // Sorting
+  $('#interviewTable thead').addEventListener('click', e=>{
+    const th = e.target.closest('th[data-sort]');
+    if(!th) return;
+    const key = th.dataset.sort;
+    if(sortKey === key){ sortDir = sortDir==='asc'?'desc':'asc'; }
+    else { sortKey = key; sortDir = 'asc'; }
+    renderTable();
+  });
+
+  // Search & Filters
+  $('#searchInput').addEventListener('input', ()=>render());
+  $('#statusFilter').addEventListener('change', ()=>render());
+  $('#priorityFilter').addEventListener('change', ()=>render());
+  $('#modeFilter').addEventListener('change', ()=>render());
+  $('#dateFrom').addEventListener('change', ()=>render());
+  $('#dateTo').addEventListener('change', ()=>render());
+  $('#clearFilters').addEventListener('click', ()=>{
+    $('#statusFilter').value = '';
+    $('#priorityFilter').value = '';
+    $('#modeFilter').value = '';
+    $('#dateFrom').value = '';
+    $('#dateTo').value = '';
+    $('#searchInput').value = '';
+    render();
+  });
+
+  // View switch
+  $$('a.nav-link[data-view]').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      e.preventDefault();
+      activeView = a.dataset.view;
+      $('#viewList').classList.toggle('d-none', activeView!=='list');
+      $('#viewKanban').classList.toggle('d-none', activeView!=='kanban');
+      render();
+      $$('a.nav-link[data-view]').forEach(x=>x.classList.toggle('active', x===a));
+    });
+  });
+  // default active
+  $$('a.nav-link[data-view]')[0].classList.add('active');
+
+  // Toolbar buttons
+  $('#exportBtn').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'interviews-backup.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  $('#importFile').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{ const arr = JSON.parse(reader.result); if(Array.isArray(arr)){ data = arr; save(data); render(); toast('Imported successfully'); } else { throw new Error('Invalid format'); } }
+      catch(err){ alert('Import failed: '+err.message); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  // Table actions
+  $('#tableBody').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const id = e.target.closest('tr').dataset.id;
+    const action = btn.dataset.action;
+    if(action==='edit'){ openForEdit(id); }
+    if(action==='delete'){
+      if(confirm('Delete this record?')) removeItem(id);
+    }
+    if(action==='view'){
+      const it = data.find(x=>x.id===id); if(!it) return;
+      const details = `Company: ${it.company}\nRole: ${it.role}\nStatus: ${it.status}\nPriority: ${it.priority}\nApplied: ${fmtDate(it.appliedDate)}\nNext: ${fmtDate(it.nextStep)}\nLocation: ${it.location||''}\nMode: ${it.mode||''}\nCTC: ${it.ctc||''}\nSource: ${it.source||''}\nLinks: ${it.links||''}\nContact: ${it.contact||''} (${it.contactInfo||''})\n\nNotes:\n${it.notes||''}`;
+      alert(details);
+    }
+  });
+
+  // Modal open
+  $('#editModal').addEventListener('show.bs.modal', (e)=>{
+    if(!$('#id').value) openForCreate();
+  });
+
+  // Save form
+  $('#editForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    const form = e.currentTarget;
+    form.classList.add('was-validated');
+    if(!form.checkValidity()) return;
+
+    const payload = {
+      id: $('#id').value || uid(),
+      company: $('#company').value.trim(),
+      role: $('#role').value.trim(),
+      status: $('#status').value,
+      stage: +$('#stage').value || 0,
+      priority: $('#priority').value,
+      mode: $('#mode').value,
+      location: $('#location').value.trim(),
+      appliedDate: $('#appliedDate').value ? new Date($('#appliedDate').value).toISOString() : '',
+      nextStep: $('#nextStep').value ? new Date($('#nextStep').value).toISOString() : '',
+      ctc: $('#ctc').value.trim(),
+      contact: $('#contact').value.trim(),
+      contactInfo: $('#contactInfo').value.trim(),
+      source: $('#source').value.trim(),
+      links: $('#links').value.trim(),
+      notes: $('#notes').value.trim(),
+      updatedAt: new Date().toISOString()
     };
 
-    const $ = (sel, el=document) => el.querySelector(sel);
-    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+    const idx = data.findIndex(x=>x.id===payload.id);
+    if(idx>-1){ data[idx] = {...data[idx], ...payload}; toast('Updated'); }
+    else { data.unshift(payload); toast('Added'); }
+    save(data);
+    render();
+    bootstrap.Modal.getInstance($('#editModal')).hide();
+    form.reset();
+    form.classList.remove('was-validated');
+  });
 
-    // --- Routing ---
-    function router() {
-      const hash = location.hash.slice(1);
-      if (!hash || hash === '/') return renderHome();
-      if (hash.startsWith('category/')) return renderHome(hash.split('/')[1]);
-      if (hash.startsWith('post/')) return renderPost(hash.split('/')[1]);
-      if (hash === 'rss') return downloadRSS();
-      if (hash === 'about') return renderAbout();
-      if (hash === 'contact') return renderContact();
-      return renderHome();
-    }
+  // Theme toggle
+  function setTheme(mode){
+    document.documentElement.setAttribute('data-bs-theme', mode);
+    localStorage.setItem(themeKey, mode);
+    $('#themeToggle').innerHTML = mode==='dark' ? '<i class="bi bi-brightness-high"></i>' : '<i class="bi bi-moon-stars"></i>';
+  }
+  $('#themeToggle').addEventListener('click', ()=>{
+    const cur = document.documentElement.getAttribute('data-bs-theme')||'light';
+    setTheme(cur==='light'?'dark':'light');
+  });
+  (function initTheme(){ setTheme(localStorage.getItem(themeKey)||'light'); })();
 
-    // --- Helpers ---
-    const formatDate = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+  // Seed sample data on first run
+  if(data.length===0){
+    data = [
+      {id:uid(), company:'Acme Corp', role:'Java Developer', status:'Applied', stage:10, priority:'High', mode:'Hybrid', location:'Bengaluru', appliedDate:new Date().toISOString(), nextStep:'', ctc:'₹18 LPA', contact:'Priya S', contactInfo:'priya@acme.com', source:'LinkedIn', links:'', notes:'Referred by Anil.', updatedAt:new Date().toISOString()},
+      {id:uid(), company:'ByteWorks', role:'Data Engineer', status:'Screening', stage:40, priority:'Medium', mode:'Remote', location:'Pune', appliedDate:new Date(Date.now()-86400000*7).toISOString(), nextStep:new Date(Date.now()+86400000*2).toISOString(), ctc:'₹22 LPA', contact:'Rahul M', contactInfo:'', source:'Company site', links:'', notes:'Take-home due by Friday.', updatedAt:new Date().toISOString()},
+      {id:uid(), company:'Nimbus Labs', role:'Spring Boot Dev', status:'Technical', stage:70, priority:'High', mode:'Onsite', location:'Hyderabad', appliedDate:new Date(Date.now()-86400000*20).toISOString(), nextStep:new Date(Date.now()+86400000*5).toISOString(), ctc:'₹20 LPA', contact:'HR – Ritu', contactInfo:'', source:'Recruiter', links:'', notes:'Prepare for system design.', updatedAt:new Date().toISOString()}
+    ];
+    save(data);
+  }
 
-    function postCard(p) {
-      return `
-        <article class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-md transition">
-          <a href="#post/${p.slug}" class="block">
-            <img src="${p.cover}" alt="${p.title}" class="h-44 w-full object-cover" loading="lazy"/>
-            <div class="p-5">
-              <div class="flex items-center gap-2 text-xs text-indigo-700 dark:text-indigo-400">
-                <span class="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/40">${p.category}</span>
-                <span class="text-gray-500 dark:text-gray-400">•</span>
-                <time datetime="${p.date}">${formatDate(p.date)}</time>
-              </div>
-              <h2 class="mt-2 text-lg font-semibold leading-snug">${p.title}</h2>
-              <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">${p.excerpt}</p>
-              <div class="mt-3 text-sm font-medium text-indigo-700 dark:text-indigo-400">Read more →</div>
-            </div>
-          </a>
-        </article>`
-    }
-
-    function renderHome(categoryFromRoute) {
-      const app = $('#app');
-      const category = categoryFromRoute || state.filter;
-
-      // apply active filter button state
-      $$('.filter-btn').forEach(btn => {
-        btn.classList.toggle('bg-indigo-600', btn.dataset.filter === category);
-        btn.classList.toggle('text-white', btn.dataset.filter === category);
-      });
-
-      let list = [...POSTS].sort((a,b)=> new Date(b.date) - new Date(a.date));
-      if (category && category !== 'All') list = list.filter(p => p.category === category);
-      if (state.query) {
-        const q = state.query.toLowerCase();
-        list = list.filter(p => [p.title, p.excerpt, p.tags.join(' ')].join(' ').toLowerCase().includes(q));
-      }
-
-      const html = `
-        <div class="fade-enter fade-enter-active">
-          <h2 class="text-2xl font-bold mb-4">Latest ${category === 'All' ? '' : category}</h2>
-          ${list.length ?
-            `<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">${list.map(postCard).join('')}</div>` :
-            `<div class="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 p-10 text-center text-gray-500">No posts match your search.</div>`
-          }
-        </div>`;
-      app.innerHTML = html;
-      updateJSONLD('home');
-    }
-
-    function renderPost(slug) {
-      const p = POSTS.find(x => x.slug === slug);
-      const app = $('#app');
-      if (!p) {
-        app.innerHTML = `<div class='p-10 text-center'>Post not found. <a class='text-indigo-600' href='#'>Go home</a></div>`;
-        return;
-      }
-      app.innerHTML = `
-        <article class="fade-enter fade-enter-active max-w-3xl mx-auto">
-          <a href="#" class="text-sm text-indigo-700 dark:text-indigo-400">← Back</a>
-          <h1 class="mt-3 text-3xl sm:text-4xl font-extrabold">${p.title}</h1>
-          <div class="mt-2 flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-            <span class="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">${p.category}</span>
-            <time datetime="${p.date}">• ${formatDate(p.date)}</time>
-          </div>
-          <img src="${p.cover}" alt="${p.title}" class="mt-6 rounded-3xl shadow"/>
-          <div class="prose dark:prose-invert prose-indigo max-w-none mt-6">
-            ${p.content}
-          </div>
-          <div class="mt-8 flex items-center gap-3">
-            <button class="bookmark rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" data-slug="${p.slug}">🔖 Bookmark</button>
-            <button class="share rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" data-slug="${p.slug}">📤 Share</button>
-          </div>
-        </article>`;
-
-      // wire actions
-      $('.bookmark').addEventListener('click', (e)=>{
-        const s = e.currentTarget.dataset.slug;
-        const key = 'ap.bookmarks';
-        const cur = new Set(JSON.parse(localStorage.getItem(key)||'[]'));
-        cur.has(s) ? cur.delete(s) : cur.add(s);
-        localStorage.setItem(key, JSON.stringify([...cur]));
-        e.currentTarget.textContent = cur.has(s) ? '✅ Bookmarked' : '🔖 Bookmark';
-      });
-      $('.share').addEventListener('click', async ()=>{
-        const url = location.origin + location.pathname + '#post/' + p.slug;
-        try { await navigator.clipboard.writeText(url); alert('Link copied to clipboard'); }
-        catch { prompt('Copy this link:', url); }
-      });
-
-      updateJSONLD('post', p);
-    }
-
-    function renderAbout(){
-      $('#app').innerHTML = `
-        <div class="fade-enter fade-enter-active max-w-3xl mx-auto">
-          <h1 class="text-3xl font-extrabold">About AutoPulse</h1>
-          <p class="mt-4 text-lg text-gray-700 dark:text-gray-300">I write quick, useful takes on Indian car news and honest, numbers‑backed reviews. Expect range tests, highway FE, and service costs.
-          </p>
-        </div>`;
-      updateJSONLD('page', {title:'About AutoPulse'});
-    }
-
-    function renderContact(){
-      $('#app').innerHTML = `
-        <div class="fade-enter fade-enter-active max-w-3xl mx-auto">
-          <h1 class="text-3xl font-extrabold">Contact</h1>
-          <form class="mt-6 grid gap-4 max-w-xl" onsubmit="event.preventDefault(); alert('Thanks! I\'ll reply soon.'); this.reset();">
-            <input required placeholder="Your name" class="rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-4 py-3"/>
-            <input type="email" required placeholder="Email" class="rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-4 py-3"/>
-            <textarea required rows="5" placeholder="Message" class="rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-4 py-3"></textarea>
-            <button class="justify-self-start rounded-xl bg-indigo-600 text-white px-5 py-3 font-semibold hover:bg-indigo-700">Send</button>
-          </form>
-        </div>`;
-      updateJSONLD('page', {title:'Contact'});
-    }
-
-    // RSS (very basic) download
-    function downloadRSS(){
-      const rss = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n<channel>\n<title>AutoPulse</title>\n<link>${location.origin+location.pathname}</link>\n<description>Car news & reviews</description>\n${POSTS.map(p=>`<item>\n<title>${p.title}</title>\n<link>${location.origin+location.pathname}#post/${p.slug}</link>\n<pubDate>${new Date(p.date).toUTCString()}</pubDate>\n<description><![CDATA[${p.excerpt}]]></description>\n</item>`).join('\n')}\n</channel>\n</rss>`;
-      const blob = new Blob([rss], {type:'application/rss+xml'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'autopulse.xml';
-      a.click();
-      history.replaceState(null, '', '#');
-    }
-
-    // JSON‑LD for SEO
-    function updateJSONLD(type, post){
-      // remove old
-      $$('script[type="application/ld+json"]').forEach(n=>n.remove());
-      const site = {
-        "@context":"https://schema.org",
-        "@type":"Blog",
-        name: "AutoPulse",
-        url: location.origin + location.pathname,
-        description: "Car news & reviews blog"
-      };
-      const el1 = document.createElement('script');
-      el1.type = 'application/ld+json';
-      el1.textContent = JSON.stringify(site);
-      document.head.appendChild(el1);
-
-      if (type === 'post' && post){
-        const el2 = document.createElement('script');
-        el2.type = 'application/ld+json';
-        el2.textContent = JSON.stringify({
-          "@context":"https://schema.org",
-          "@type":"BlogPosting",
-          headline: post.title,
-          datePublished: post.date,
-          image: [post.cover],
-          author: {"@type":"Person","name":"AutoPulse"},
-          mainEntityOfPage: location.href
-        });
-        document.head.appendChild(el2);
-      }
-    }
-
-    // --- Events ---
-    addEventListener('hashchange', router);
-
-    // filters
-    $$(".filter-btn").forEach(b => b.addEventListener('click', ()=>{
-      state.filter = b.dataset.filter;
-      location.hash = state.filter === 'All' ? '/' : `category/${state.filter}`;
-    }));
-
-    // search
-    $('#search').addEventListener('input', (e)=>{ state.query = e.target.value.trim(); router(); });
-
-    // theme toggle
-    const themeToggle = $('#themeToggle');
-    const themeKey = 'ap.theme';
-    function applyTheme(t){ document.documentElement.classList.toggle('dark', t==='dark'); localStorage.setItem(themeKey, t); }
-    const saved = localStorage.getItem(themeKey) || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
-    applyTheme(saved);
-    themeToggle.addEventListener('click', ()=> applyTheme(document.documentElement.classList.contains('dark') ? 'light':'dark'));
-
-    // footer year & subscribe demo
-    $('#year').textContent = new Date().getFullYear();
-    $('#subscribe').addEventListener('submit', (e)=>{ e.preventDefault(); $('#subMsg').classList.remove('hidden'); e.target.reset(); });
-
-    // boot
-    router();
+  // Init
+  document.addEventListener('DOMContentLoaded', ()=>{
+    render();
+    // Open create modal from button
+    $$('[data-bs-target="#editModal"]').forEach(btn=>btn.addEventListener('click', openForCreate));
+  });
   </script>
 </body>
 </html>
